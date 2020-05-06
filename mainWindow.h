@@ -15,6 +15,8 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(const QString& cred, QWidget *parent = nullptr);
     ~MainWindow();
+    void closeEvent(QCloseEvent *event);
+
 
 private slots:
 

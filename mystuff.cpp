@@ -286,7 +286,7 @@ void User::to_String_List(QStringList &__to_return) const {
 void myStuff::carica_dati_user(User& now_user) {
 
     QStringList tmp = now_user.credenziali.split(",");
-    QFile file("Files/DataUsers/" + tmp[0] + tmp [1]);
+    QFile file("Files/UsersData/" + tmp[0] + tmp [1] +".txt");
 
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         myStuff::messaggio("ERRORE!", "Errore nell'apertura del file");
@@ -295,6 +295,9 @@ void myStuff::carica_dati_user(User& now_user) {
     }
 
     else {
+        tmp.clear();
+        tmp << "";
+        tmp << "";
         tmp << "";
         QTextStream stream(&file);
         user_treno tempTrain;
@@ -304,15 +307,50 @@ void myStuff::carica_dati_user(User& now_user) {
         while(!stream.atEnd()) {
             tmp [0] = stream.readLine();
             tmp [1] = stream.readLine();
-            tmp [3] = stream.readLine();
+            tmp [2] = stream.readLine();
             tempTrain = tmp;
             now_user.treni_prenotati.push_back(tempTrain);
+            for (auto val:tmp )
+                myStuff::messaggio("Val2",val);
         }
 
         file.close();
     }
 
 }
+
+
+void myStuff::scrivi_dati_user(const User& now_user) {
+
+    myStuff::messaggio("o","scrivo");
+    QStringList tmp = now_user.credenziali.split(",");
+    QFile file("Files/UsersData/" + tmp[0] + tmp [1] +".txt");
+
+    if (!file.open(QIODevice::WriteOnly| QIODevice::Text)) {
+        myStuff::messaggio("ERRORE!", "Errore nell'apertura del file");
+        file.close();
+        exit(EXIT_FAILURE);
+    }
+
+    else {
+           file.resize(0);
+           QTextStream stream(&file);
+           myStuff::messaggio("",stream.readLine());
+           tmp.clear();
+           stream << "\n";
+           now_user.to_String_List(tmp);
+
+           foreach (const auto& val, tmp) {
+               myStuff::messaggio("Val1",val);
+               stream << val << "\n";
+            }
+
+           file.close();
+   }
+
+
+}
+
 
 void myStuff::load_user_trains (QVector<myStuff::user_treno>& vettore_treni_user, QVector<myStuff::Treno>& vettore_treni) { //Carica il vettore dei treni di un user
 

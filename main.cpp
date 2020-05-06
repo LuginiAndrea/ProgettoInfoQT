@@ -16,14 +16,18 @@ int main(int argc, char *argv[])
         return  0;
     }
 
-    MainWindow w(credenziali);
-    AdminWindow admin;
+    MainWindow* w;
+    AdminWindow* admin;
 
-   if (correct_close == 1)
-       admin.show();
+   if (correct_close == 1) {
+       admin = new AdminWindow;
+       admin->show();
+   }
 
-   else
-       w.show();
+   else {
+       w = new MainWindow(credenziali);
+       w->show();
+   }
 
     return a.exec();
 }

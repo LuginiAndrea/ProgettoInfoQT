@@ -11,10 +11,12 @@ Access_Dialog::Access_Dialog(QString* __cred, char* __from_Btn, QWidget *parent)
     ui(new Ui::Access_Dialog)
 {
     this->setWindowTitle("Login");
-    Access_Dialog::_fromButton = __from_Btn; //from Button is by default false
+    _fromButton = __from_Btn; //from Button is by default false
     *_fromButton = 0;
     ui->setupUi(this);
     credenziali = __cred;
+    this->setWindowFlag(Qt::WindowContextHelpButtonHint,false); //Toglie il "?" dallo status bar
+    this->setFixedSize(this->size()); //Fa in modo che la grandezza non sia modificabile
 }
 
 Access_Dialog::~Access_Dialog()
@@ -28,6 +30,7 @@ void Access_Dialog::on_btn_leave_clicked()
     QFile file("Files/users.txt");
     QString cred = ui->lineEdit->text() + "," + ui->lineEdit_2->text();
     cred = cred.toLower();
+    *credenziali = cred;
 
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         myStuff::messaggio("ERRORE!","Errore nella apertura del file");
@@ -36,8 +39,10 @@ void Access_Dialog::on_btn_leave_clicked()
 
     else {
 
-        if (cred == ",")
+        if (cred == ",") {
             myStuff::messaggio("ERRORE","Credenziali inserite non valide");
+            *_fromButton = 3;
+        }
 
         else {
 
@@ -51,18 +56,22 @@ void Access_Dialog::on_btn_leave_clicked()
                     if (cred == stream.readLine()) {
                         *_fromButton = 2;
                         break;
-                        *credenziali = cred;
                     }
                 }
             }
 
-            if (*_fromButton == 0)
+            if (*_fromButton == 3)
                  myStuff::messaggio("ERRORE","Nessun account con le credenziali inserite");
         }
     }
 
     file.close();
-    this->close();
+    if(*_fromButton != 3)
+        this->close();
+
+    else *_fromButton = 0;
+
+            myStuff::messaggio("chiudo","NON CHIUDO");
 }
 
 

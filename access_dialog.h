@@ -3,7 +3,7 @@
 
 #include <QDialog>
 
-//_fromButton e' 0 se non chiudiamo con bottone, 1 se dati admin, 2 se dati user
+//_fromButton e' 0 se non chiudiamo con bottone, 1 se dati admin, 2 se dati use, 3 se i dati inseriti non vanno bene
 
 namespace Ui {
 class Access_Dialog;
@@ -27,7 +27,7 @@ private slots:
 private:
     Ui::Access_Dialog *ui;
     char* _fromButton; //Una variabile bool che usiamo per dire che possiamo effettivamente chiudere la dialog se username e password sono corretti
-    QString* credenziali;
+    QString* credenziali; //Salviamo un puntatore alle credenziali che passeremo all'user window se verrà aperta
 };
 
 #endif // ACCESS_DIALOG_H

@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "mystuff.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -12,13 +13,16 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    MainWindow(const QString& cred, QWidget *parent = nullptr);
     ~MainWindow();
+    void closeEvent(QCloseEvent *event); //Override  della funzione
 
 private slots:
 
 
 private:
     Ui::MainWindow *ui;
+    myStuff::User my_user;
+    QVector <myStuff::Treno> vettore_treni;
 };
 #endif // MAINWINDOW_H

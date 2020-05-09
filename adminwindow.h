@@ -2,6 +2,7 @@
 #define ADMINWINDOW_H
 
 #include <QMainWindow>
+#include "mystuff.h"
 
 namespace Ui {
 class AdminWindow;
@@ -17,6 +18,7 @@ public:
 
 private:
     Ui::AdminWindow *ui;
+    QVector <myStuff::Treno> vettore_treni;
 };
 
 #endif // ADMINWINDOW_H

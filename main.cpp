@@ -1,6 +1,8 @@
 #include "mainWindow.h"
 #include "access_dialog.h"
 #include "adminwindow.h"
+#include "QString"
+
 
 #include <QApplication>
 
@@ -23,6 +25,7 @@ int main(int argc, char *argv[])
        admin = new AdminWindow;
        admin->show();
    }
+
 
    else {
        w = new MainWindow(credenziali);

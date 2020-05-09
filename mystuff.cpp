@@ -132,13 +132,7 @@ void Data_ora::operator= (const QString& __convert) {
     _minuto = dati[4].toInt();
 }
 
-void Data_ora::operator=(const QDateTime& dataTime) {
-    _giorno = dataTime.toString("d").toInt();
-    _mese = dataTime.toString("m").toInt();
-    _anno = dataTime.toString("yyyy").toInt();
-    _ora = dataTime.toString("h").toInt();
-    _minuto = dataTime.toString("m").toInt();
-}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -157,6 +151,8 @@ Treno::Treno(std::size_t __posti_prima_classe, std::size_t __posti_seconda_class
 
     _posti_prima_classe = __posti_prima_classe;
     _posti_seconda_classe = __posti_seconda_classe;
+    _posti_rimanenti_prima_classe = _posti_prima_classe;
+    _posti_rimanenti_seconda_classe = _posti_seconda_classe;
     _numero_carrozze = __numero_carrozze;
     _durata_tratta = std::move (__durata_tratta);
     _piattaforma = __piattaforma;
@@ -207,6 +203,10 @@ Treno::Treno(const Treno& __other) noexcept{
    _codice_treno = __other._codice_treno;
 
    }
+
+Treno::Treno(const QStringList& __to_copy) {
+    *this = __to_copy;
+}
 
 /////////////////////////////////////////////////////////////////////
 
@@ -269,24 +269,50 @@ bool Treno::operator!=(const Treno& __other) const {
 /////////////////////////////////////////////////////////////////////
 
 
-void User::to_String_List(QStringList &__to_return) const {
+QStringList User::to_String_List() const {
 
-    __to_return << QString::number(credito);
+    QStringList to_return;
+    to_return << QString::number(credito);
     QStringList temp;
         foreach (const auto& elem, treni_prenotati) {
-             elem.to_String_List(temp);
-             __to_return += temp;
-
+             temp = elem.to_String_List();
+             to_return += temp;
         }
+
+     return to_return;
 
 }
 
+
+User::User() {}
+
+
 //////////////////////////////////////////////////////////////////
+
+void myStuff::scrivi_dati_user(const User& now_user) {
+
+    QStringList tmp = now_user.credenziali.split(",");
+    QFile file("Files/UsersData/U-" + tmp[0] + "P-" + tmp[1] + ".txt");
+
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        myStuff::messaggio("ERRORE!", "Errore nell'apertura del file");
+        file.close();
+        exit(EXIT_FAILURE);
+    }
+
+    else {
+        file.resize(0);
+        QTextStream stream(&file);
+        QStringList tmp;
+        tmp = now_user.to_String_List();
+        for (auto val : tmp) //Da controllare tanto
+            stream << val << "\n"; }
+}
 
 void myStuff::carica_dati_user(User& now_user) {
 
     QStringList tmp = now_user.credenziali.split(",");
-    QFile file("Files/UsersData/" + tmp[0] + tmp [1] +".txt");
+     QFile file("Files/UsersData/U-" + tmp[0] + "P-" + tmp[1] + ".txt");
 
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         myStuff::messaggio("ERRORE!", "Errore nell'apertura del file");
@@ -295,72 +321,91 @@ void myStuff::carica_dati_user(User& now_user) {
     }
 
     else {
-        tmp.clear();
-        tmp << "";
-        tmp << "";
-        tmp << "";
         QTextStream stream(&file);
-        user_treno tempTrain;
 
         now_user.credito = stream.readLine().toFloat();
-
+        tmp.append("");
         while(!stream.atEnd()) {
-            tmp [0] = stream.readLine();
-            tmp [1] = stream.readLine();
-            tmp [2] = stream.readLine();
-            tempTrain = tmp;
-            now_user.treni_prenotati.push_back(tempTrain);
-            for (auto val:tmp )
-                myStuff::messaggio("Val2",val);
-        }
+            stream.readLineInto(&tmp[0]);
+            stream.readLineInto(&tmp[1]);
+            stream.readLineInto(&tmp[2]);
+            now_user.treni_prenotati.push_back(tmp);
+            foreach(const auto& val, tmp)
+                myStuff::messaggio("Umpfh",val);
+         }
 
         file.close();
     }
 
 }
 
+void myStuff::load_user_trains (QVector<myStuff::user_treno>* vettore_treni_user, QVector<myStuff::Treno>* vettore_treni) { //Carica il vettore dei treni di un user
 
-void myStuff::scrivi_dati_user(const User& now_user) {
+    for (auto& treno : *vettore_treni)
+        for (auto& user_treno_var : *vettore_treni_user)
+            if (user_treno_var._codice_treno_puntato == treno._codice_treno) //Se tra i codici memorizzati nel vettore dell'user corrisponde nel vettore dei treni
+                 user_treno_var.set_ptr(&treno);                            //Il puntatore della lista punta a quel treno
 
-    myStuff::messaggio("o","scrivo");
-    QStringList tmp = now_user.credenziali.split(",");
-    QFile file("Files/UsersData/" + tmp[0] + tmp [1] +".txt");
+    for (auto it = vettore_treni_user->begin(); it != vettore_treni_user->end(); ++it) //Scorre tutto il vettore e se un treno puntato non corrisponde eliminiamo l'elemento dal vettore
+        if (it->get_ptr() == nullptr) vettore_treni_user->erase(it); //It è un iteratore, un "super-puntatore" che serve a riferirisi a dei punti del contenitore al quale appartengono
+}
 
-    if (!file.open(QIODevice::WriteOnly| QIODevice::Text)) {
+
+void myStuff::scrivi_treni_vector(const QVector <Treno>& treni) {
+
+    QFile file("Files/treni.txt");
+
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         myStuff::messaggio("ERRORE!", "Errore nell'apertura del file");
         file.close();
         exit(EXIT_FAILURE);
     }
 
-    else {
-           file.resize(0);
-           QTextStream stream(&file);
-           myStuff::messaggio("",stream.readLine());
-           tmp.clear();
-           stream << "\n";
-           now_user.to_String_List(tmp);
+    file.resize(0);
+    QTextStream stream(&file);
+    QStringList tmp;
 
-           foreach (const auto& val, tmp) {
-               myStuff::messaggio("Val1",val);
-               stream << val << "\n";
-            }
+    foreach (const auto& elem, treni) {
 
-           file.close();
-   }
+        tmp = elem.to_String_List();
 
+        foreach (const auto& linea, tmp)
+            stream << linea <<"\n";
+    }
+
+    file.close();
 
 }
 
 
-void myStuff::load_user_trains (QVector<myStuff::user_treno>& vettore_treni_user, QVector<myStuff::Treno>& vettore_treni) { //Carica il vettore dei treni di un user
+void myStuff::carica_treni_vector(QVector <Treno>& treni) {
 
-    for (auto& treno : vettore_treni)
-        for (auto& user_treno_var : vettore_treni_user)
-            if (user_treno_var._codice_treno_puntato == treno._codice_treno) //Se tra i codici memorizzati nel vettore dell'user corrisponde nel vettore dei treni
-                 user_treno_var.set_ptr(&treno);                            //Il puntatore della lista punta a quel treno
+    QFile file("Files/treni.txt");
 
-    for (auto it = vettore_treni_user.begin(); it != vettore_treni_user.end(); ++it) //Scorre tutto il vettore e se un treno puntato non corrisponde eliminiamo l'elemento dal vettore
-        if (it->get_ptr() == nullptr) vettore_treni_user.erase(it); //It è un iteratore, un "super-puntatore" che serve a riferirisi a dei punti del contenitore al quale appartengono
+    if (!file.open(QIODevice::ReadWrite | QIODevice::Text)) {
+        myStuff::messaggio("ERRORE!", "Errore nell'apertura del file");
+        file.close();
+        exit(EXIT_FAILURE);
+    }
+
+    QTextStream stream(&file);
+    QStringList tmp;
+    Treno temp_train;
+    Data_ora min_data_ora;
+
+    while (!stream.atEnd()) {
+
+        for (int i = 0; i < 14; i++)  //Ho 14 elementi per i quali devo eseguire la stessa operazione quindi metto in un ciclo
+            tmp << stream.readLine();
+
+
+        temp_train = tmp;
+
+        if (!(temp_train._giorno_orario < min_data_ora))  treni.push_back(temp_train);
+        tmp.clear();
+    }
+
+    file.close();
 }
 
 

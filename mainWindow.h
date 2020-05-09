@@ -15,8 +15,7 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(const QString& cred, QWidget *parent = nullptr);
     ~MainWindow();
-    void closeEvent(QCloseEvent *event);
-
+    void closeEvent(QCloseEvent *event); //Override  della funzione
 
 private slots:
 
@@ -24,5 +23,6 @@ private slots:
 private:
     Ui::MainWindow *ui;
     myStuff::User my_user;
+    QVector <myStuff::Treno> vettore_treni;
 };
 #endif // MAINWINDOW_H

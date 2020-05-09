@@ -8,7 +8,6 @@ AdminWindow::AdminWindow(QWidget *parent) :
     ui->setupUi(this);
     this->setWindowTitle("Admin Mode");
     ui->dateEdit->setMinimumDate(QDate::currentDate());
-    this->setFixedSize(this->size()); //Fa in modo che la grandezza non sia modificabile
 }
 
 AdminWindow::~AdminWindow()

@@ -5,11 +5,11 @@
 #include "QFile"
 #include "QVector"
 #include "QTextStream"
+#include "QDebug"
 #include "QMessageBox"
 
 
 //Implementare classe data
-#define BYTE 8
 
 namespace myStuff {
 
@@ -38,7 +38,6 @@ public:
    bool operator!= (const Data_ora& __other) const noexcept;
    const QString to_String() const;
    void operator= (const QString& __convert);
-   void operator= (const QDateTime& __to_copy);
 };
 
 
@@ -74,6 +73,8 @@ public:
     Treno (Treno&& __other) noexcept;
     Treno (const Treno& __other) noexcept;
 
+    Treno(const QStringList& __to_copy);
+
     //----------Move assignment operator
     const Treno& operator= (Treno&& __other) noexcept;
     const Treno& operator=(const Treno& __other) noexcept;
@@ -84,39 +85,41 @@ public:
     bool operator== (const Treno& __other) const;
     bool operator!=(const Treno& __other) const;
 
-    void to_String_List(QStringList& __to_return) const {
+    QStringList to_String_List() const {
+        QStringList to_return;
+        to_return << QString::number(_posti_prima_classe);
+        to_return << QString::number(_posti_rimanenti_prima_classe);
+        to_return << QString::number(_posti_seconda_classe);
+        to_return << QString::number(_posti_rimanenti_seconda_classe);
+        to_return << QString::number(_numero_carrozze);
+        to_return << QString::number(_piattaforma);
+        to_return << _giorno_orario.to_String();
 
-        __to_return << QString::number(_posti_prima_classe);
-        __to_return << QString::number(_posti_rimanenti_prima_classe);
-        __to_return << QString::number(_posti_seconda_classe);
-        __to_return << QString::number(_posti_rimanenti_seconda_classe);
-        __to_return << QString::number(_numero_carrozze);
-        __to_return << QString::number(_piattaforma);
-        __to_return << _giorno_orario.to_String();
-
-        __to_return << ""; //Prepariamo l'elemento dopo (evitiamo un out of range error)
+        to_return << ""; //Prepariamo l'elemento dopo (evitiamo un out of range error)
 
         foreach(const auto& dato, _durata_tratta)
-            __to_return[7] += QString::number(dato) +","; //Separiamo da virgola
+            to_return[7] += QString::number(dato) +","; //Separiamo da virgola
 
-        __to_return << "";
+        to_return << "";
 
         foreach(const auto& dato, _costo_biglietto_tratte_prima_classe)
-            __to_return[8] += QString::number(dato)+",";
+            to_return[8] += QString::number(dato)+",";
 
-        __to_return << "";
+        to_return << "";
 
         foreach(const auto& dato, _costo_biglietto_tratte_seconda_classe)
-            __to_return[9] += QString::number(dato) +",";
+            to_return[9] += QString::number(dato) +",";
 
-        __to_return << "";
+        to_return << "";
 
         foreach(const auto& dato, _stazioni_attraversate)
-            __to_return[10] += dato +",";
+            to_return[10] += dato +",";
 
-        __to_return << _codice_treno;
-        __to_return << _tipo_treno;
-        __to_return << _compagnia;
+        to_return << _codice_treno;
+        to_return << _tipo_treno;
+        to_return << _compagnia;
+
+        return to_return;
     }
 
     void operator= (const QStringList& __to_copy) {
@@ -137,27 +140,31 @@ public:
             _durata_tratta.push_back(dato.toFloat());
 
         tmp = __to_copy[8].split(","); //Separiamo i valori con la virgola
+        tmp.pop_back();
 
         foreach(const auto& dato, tmp)
             _costo_biglietto_tratte_prima_classe.push_back(dato.toFloat());
 
          tmp = __to_copy[9].split(","); //Separiamo i valori con la virgola
+         tmp.pop_back();
+
 
         foreach(const auto& dato, tmp)
             _costo_biglietto_tratte_seconda_classe.push_back(dato.toFloat());
 
          tmp = __to_copy[10].split(","); //Separiamo i valori con la virgola
+         tmp.pop_back();
+
 
         foreach(const auto& dato, tmp)
-            _stazioni_attraversate.push_back(dato + ",");
+            _stazioni_attraversate.push_back(dato);
 
         _codice_treno = __to_copy[11];
         _tipo_treno = __to_copy[12];
-        _codice_treno = __to_copy[13];
+        _compagnia = __to_copy[13];
     }
 
 };
-
 
 
 
@@ -174,16 +181,20 @@ public:
         _treno_prenotato = __ptr;
         _tratta = __tratta;
         _codice_treno_puntato = __codice;
+        _prima_classe.clear();
     }
 
-    void to_String_List (QStringList& __to_return) const {
-        __to_return << _tratta;
-        __to_return << _codice_treno_puntato;
+    QStringList to_String_List () const {
+        QStringList to_return;
+        to_return << _tratta;
+        to_return << _codice_treno_puntato;
 
-        __to_return << ""; //Prepariamo l'elemento dopo (evitiamo un out of range error)
+        //to_return << ""; //Prepariamo l'elemento dopo (evitiamo un out of range error)
+        to_return << "";
+        foreach (const auto dato, _prima_classe)  //A int così avremo 1 e 0
+            to_return[2] += QString::number(dato) +","; //Separiamo i valori con la virgola
 
-        foreach (const int& dato, _prima_classe) //A int così avremo 1 e 0
-            __to_return[2] += QString::number(dato) +","; //Separiamo i valori con la virgola
+        return to_return;
     }
 
     void operator= (const QStringList& __to_copy) {
@@ -198,12 +209,21 @@ public:
         foreach(const auto& dato, tmp)
             _prima_classe.push_back(dato.toInt()); //Conversione automatica di int a bool
 
+        _prima_classe.pop_back();
+
+
+
     }
 
     void set_ptr(Treno* __reference) { _treno_prenotato = __reference; }
 
     const Treno* get_ptr() const { return _treno_prenotato; }
 
+    user_treno(const QStringList& __to_copy) {
+        *this = __to_copy;
+    }
+
+    user_treno() {}
 };
 
 
@@ -216,9 +236,11 @@ public:
     float credito;
     QVector <user_treno> treni_prenotati; //Treni prenotati dall'user
 
-    void to_String_List (QStringList& __to_return) const;
+    User();
 
-    void operator= (const User& user) = delete;
+    QStringList to_String_List () const;
+
+    void operator= (const User& user) = delete; //Due utenti non possono essere uguali
 
 };
 
@@ -227,13 +249,14 @@ public:
 
 
 
-void messaggio (const QString& TITLE, const QString& MSG);
 
 void carica_treni_vector (QVector<Treno>& vettore_treni);
 void scrivi_treni_vector(const QVector<Treno>& vettore_treni);
 void carica_dati_user(User& now_user); //FATTA
 void scrivi_dati_user(const User& now_user);
-void load_user_trains (QVector<myStuff::user_treno>& vettore_treni_user, QVector<myStuff::Treno>& vettore_treni);
+void load_user_trains (QVector<myStuff::user_treno>* vettore_treni_user, QVector<myStuff::Treno>* vettore_treni);
+void messaggio (const QString& TITLE, const QString& MSG);
+
 
 }
 #endif // MYSTUFF_H
